@@ -22,6 +22,9 @@ export default defineConfig({
         short_name: 'ATM',
         description: 'ATM Management System',
         theme_color: '#185FA5',
+        background_color: '#ffffff',
+        display: 'standalone',
+        start_url: './',
         icons: [
           {
             src: 'logo.png',
