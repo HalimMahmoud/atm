@@ -1,4 +1,11 @@
 import { useState, useRef } from "react";
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
+import { AlertCircle } from "lucide-react";
+
+function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
 
 interface CounterInputProps {
   value: number;
@@ -31,7 +38,6 @@ export function CounterInput({ value, max, onChange, variant = "default" }: Coun
 
     const val = Number(raw);
     
-    // 1. Check for valid number
     if (isNaN(val)) {
       setRaw("");
       setError("Invalid number format");
@@ -40,7 +46,6 @@ export function CounterInput({ value, max, onChange, variant = "default" }: Coun
       return;
     }
 
-    // 2. Check for negative
     if (val < 0) {
       setRaw("");
       setError("Negative values not allowed");
@@ -49,7 +54,6 @@ export function CounterInput({ value, max, onChange, variant = "default" }: Coun
       return;
     }
 
-    // 3. Check for Global Max (99,900)
     if (val > 99900) {
       setRaw("");
       setError("Maximum limit is 99,900");
@@ -58,7 +62,6 @@ export function CounterInput({ value, max, onChange, variant = "default" }: Coun
       return;
     }
 
-    // 4. Check for Multiples of 100
     if (val % 100 !== 0) {
       setRaw("");
       setError("Must be a multiple of 100");
@@ -67,7 +70,6 @@ export function CounterInput({ value, max, onChange, variant = "default" }: Coun
       return;
     }
 
-    // 5. Check for Max limit (Custody availability)
     if (max !== undefined && val > max) {
       setRaw("");
       setError(`Exceeds remaining custody (Max: ${max})`);
@@ -76,7 +78,6 @@ export function CounterInput({ value, max, onChange, variant = "default" }: Coun
       return;
     }
 
-    // Success
     setError(null);
     committed.current = val;
     onChange(val);
@@ -84,7 +85,7 @@ export function CounterInput({ value, max, onChange, variant = "default" }: Coun
   };
 
   return (
-    <div style={{ position: "relative", display: isCell ? "block" : "inline-block", width: isCell ? "100%" : "auto", height: isCell ? "100%" : "auto" }}>
+    <div className={cn("relative", isCell ? "w-full h-full" : "inline-block")}>
       <style>{`
         input::-webkit-outer-spin-button,
         input::-webkit-inner-spin-button {
@@ -98,7 +99,7 @@ export function CounterInput({ value, max, onChange, variant = "default" }: Coun
       <input
         type="number"
         value={raw}
-        placeholder={isCell ? "" : "Enter amount"}
+        placeholder={isCell ? "" : "0"}
         onChange={(e) => {
           setRaw(e.target.value);
           setError(null);
@@ -109,39 +110,22 @@ export function CounterInput({ value, max, onChange, variant = "default" }: Coun
             (e.target as HTMLInputElement).blur();
           }
         }}
-        style={{
-          width: isCell ? "100%" : 90,
-          height: isCell ? "100%" : "auto",
-          textAlign: isCell ? "center" : "right",
-          fontFamily: "var(--font-mono)",
-          fontSize: isCell ? 13 : 13,
-          padding: isCell ? "0" : "5px 8px",
-          border: isCell ? "none" : `0.5px solid ${error ? "#A32D2D" : "var(--color-border-secondary)"}`,
-          borderRadius: isCell ? 0 : 6,
-          background: error ? "#FCEBEB" : "transparent",
-          color: error ? "#A32D2D" : "var(--color-text-primary)",
-          outline: "none",
-          boxSizing: "border-box",
-        }}
+        className={cn(
+          "font-mono text-sm transition-all duration-200 outline-none",
+          isCell 
+            ? "w-full h-full bg-transparent text-center border-none focus:ring-0" 
+            : "w-24 px-3 py-1.5 rounded-lg border text-right",
+          error 
+            ? "bg-red-50 text-red-600 border-red-200 focus:ring-red-500/20" 
+            : "bg-white text-slate-900 border-slate-200 focus:border-slate-400 focus:ring-2 focus:ring-slate-400/10"
+        )}
       />
       {error && (
-        <div
-          style={{
-            position: "absolute",
-            top: isCell ? "100%" : "calc(100% + 3px)",
-            left: isCell ? 0 : "auto",
-            right: 0,
-            background: "#FCEBEB",
-            color: "#A32D2D",
-            fontSize: 10,
-            padding: "3px 7px",
-            borderRadius: 5,
-            whiteSpace: "nowrap",
-            border: "0.5px solid #F7C1C1",
-            zIndex: 100,
-            boxShadow: "0 2px 8px rgba(0,0,0,0.1)"
-          }}
-        >
+        <div className={cn(
+          "absolute z-[100] flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white border border-red-100 text-red-600 text-[10px] font-semibold shadow-lg whitespace-nowrap animate-in fade-in zoom-in duration-200",
+          isCell ? "top-full mt-1 left-1/2 -translate-x-1/2" : "top-full mt-1 right-0"
+        )}>
+          <AlertCircle className="w-3 h-3" />
           {error}
         </div>
       )}

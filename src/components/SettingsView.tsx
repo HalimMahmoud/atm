@@ -5,6 +5,13 @@ import { calcTotal, fmt } from "../utils";
 import { Card } from "./shared/Card";
 import { Btn } from "./shared/Btn";
 import { CounterInput } from "./shared/CounterInput";
+import { Lock, Settings, Trash2, Save, X, Cpu } from "lucide-react";
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
 
 export function SettingsView({ state, dispatch }: { state: AppState; dispatch: React.Dispatch<Action> }) {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -39,35 +46,37 @@ export function SettingsView({ state, dispatch }: { state: AppState; dispatch: R
 
   if (!isAdmin)
     return (
-      <div style={{ display: "flex", justifyContent: "center", padding: "4rem 0" }}>
-        <Card style={{ width: "100%", maxWidth: 360, textAlign: "center" }}>
-          <div style={{ fontSize: 18, fontWeight: 500, marginBottom: 8, color: "var(--color-text-primary)" }}>Admin Access</div>
-          <p style={{ fontSize: 13, color: "var(--color-text-secondary)", marginBottom: 16 }}>Enter Super Admin PIN to edit fleet settings.</p>
-          <input
-            type="password"
-            placeholder="PIN"
-            value={pin}
-            onChange={(e) => setPin(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && login()}
-            style={{
-              width: "100%",
-              padding: "10px",
-              marginBottom: 10,
-              textAlign: "center",
-              fontSize: 16,
-              borderRadius: 8,
-              border: "0.5px solid var(--color-border-secondary)",
-              background: "var(--color-background-secondary)",
-              color: "var(--color-text-primary)",
-              boxSizing: "border-box",
-            }}
-          />
-          {error && <div style={{ color: "#A32D2D", fontSize: 12, marginBottom: 10 }}>{error}</div>}
-          <Btn variant="primary" style={{ width: "100%" }} onClick={login}>
-            Authorize
-          </Btn>
-          <div style={{ marginTop: "2rem", borderTop: "0.5px solid var(--color-border-tertiary)", paddingTop: "1rem" }}>
-            <Btn variant="danger" style={{ width: "100%" }} onClick={reset}>
+      <div className="flex justify-center py-12 md:py-24 px-4">
+        <Card className="w-full max-w-sm p-8 text-center space-y-6">
+          <div className="mx-auto w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center shadow-lg shadow-slate-200 mb-2">
+            <Lock className="w-5 h-5 text-white" />
+          </div>
+          <div className="space-y-1">
+            <h2 className="text-xl font-black text-slate-900 tracking-tight">Admin Access</h2>
+            <p className="text-sm text-slate-500 font-medium leading-relaxed">Enter Super Admin PIN to manage fleet configuration and base custody levels.</p>
+          </div>
+          
+          <div className="space-y-3">
+            <input
+              type="password"
+              placeholder="••••"
+              value={pin}
+              onChange={(e) => setPin(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && login()}
+              className={cn(
+                "w-full px-4 py-3 rounded-xl border text-center text-xl font-bold tracking-[0.5em] transition-all outline-none",
+                error ? "border-red-200 bg-red-50 text-red-600" : "border-slate-200 bg-slate-50 focus:border-slate-400"
+              )}
+            />
+            {error && <p className="text-[10px] font-bold text-red-600 uppercase tracking-widest">{error}</p>}
+            <Btn variant="primary" className="w-full py-4 text-base" onClick={login}>
+              Authorize Session
+            </Btn>
+          </div>
+
+          <div className="pt-6 border-t border-slate-100">
+            <Btn variant="ghost" className="w-full text-red-500 hover:text-red-600 hover:bg-red-50" onClick={reset}>
+              <Trash2 className="w-4 h-4 mr-2" />
               Factory Reset App
             </Btn>
           </div>
@@ -76,23 +85,41 @@ export function SettingsView({ state, dispatch }: { state: AppState; dispatch: R
     );
 
   return (
-    <div>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.25rem" }}>
-        <div>
-          <h2 style={{ margin: 0, fontSize: 18, fontWeight: 500, color: "var(--color-text-primary)" }}>Fleet Configuration</h2>
-          <div style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>Manage ATMs and base custody levels</div>
+    <div className="space-y-8 animate-in fade-in duration-500">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2 text-slate-400 mb-1">
+            <Settings className="w-4 h-4" />
+            <span className="text-[10px] font-bold uppercase tracking-widest">Admin Control</span>
+          </div>
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight">Fleet Configuration</h2>
+          <p className="text-slate-500 text-sm font-medium leading-relaxed">Modify active ATMs and their respective base custody levels.</p>
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
+
+        <div className="flex items-center gap-2">
           <Btn variant="primary" onClick={saveBase}>
-            Save All Changes
+            <Save className="w-4 h-4 mr-2" />
+            Save Changes
           </Btn>
-          <Btn onClick={() => setIsAdmin(false)}>Cancel</Btn>
+          <Btn variant="default" onClick={() => setIsAdmin(false)}>
+            <X className="w-4 h-4 mr-2" />
+            Cancel
+          </Btn>
         </div>
       </div>
 
-      <Card style={{ marginBottom: 20, background: "rgba(24, 95, 165, 0.05)", border: "1px solid #185FA5" }}>
-        <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 10 }}>Active Fleet Size</div>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+      <Card className="bg-slate-900 text-white border-none p-6 md:p-8">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-2 bg-slate-800 rounded-lg">
+            <Cpu className="w-5 h-5 text-blue-400" />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold uppercase tracking-wider">Active Fleet Size</h3>
+            <p className="text-xs text-slate-400">Drag to adjust the number of operational terminals.</p>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-8">
           <input 
             type="range" 
             min="1" 
@@ -101,7 +128,6 @@ export function SettingsView({ state, dispatch }: { state: AppState; dispatch: R
             onChange={(e) => {
               const newCount = parseInt(e.target.value);
               setTempCount(newCount);
-              // Ensure tempBase has keys for new ATMs
               const newBase = { ...tempBase };
               for(let i=1; i<=newCount; i++) {
                 const id = `ATM ${i}`;
@@ -111,34 +137,45 @@ export function SettingsView({ state, dispatch }: { state: AppState; dispatch: R
               }
               setTempBase(newBase);
             }} 
-            style={{ flex: 1 }}
+            className="flex-1 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
           />
-          <div style={{ fontSize: 20, fontWeight: 800, color: "#185FA5", minWidth: 40 }}>{tempCount}</div>
-          <div style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>ATMs</div>
+          <div className="flex items-baseline gap-2">
+            <span className="text-4xl font-black text-blue-400 tracking-tighter">{tempCount}</span>
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Terminals</span>
+          </div>
         </div>
       </Card>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {ATM_IDS.map((id) => (
-          <Card key={id} style={{ borderTop: `4px solid ${ATM_COLORS[id] || "#185FA5"}` }}>
-            <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 12, color: ATM_COLORS[id] || "#185FA5" }}>{id}</div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px 15px" }}>
+          <Card key={id} className="relative overflow-hidden pt-6">
+            <div 
+              className="absolute top-0 left-0 w-full h-1" 
+              style={{ background: ATM_COLORS[id] || "#0f172a" }}
+            />
+            <div className="flex justify-between items-center mb-6 px-2">
+              <span className="font-bold text-sm" style={{ color: ATM_COLORS[id] || "#0f172a" }}>{id}</span>
+              <div className="flex flex-col items-end">
+                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Base Total</span>
+                <span className="text-xs font-mono font-black" style={{ color: ATM_COLORS[id] }}>
+                  {fmt(calcTotal(tempBase[id] || { 200: 0, 100: 0, 50: 0, 10: 0 }))}
+                </span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 px-2">
               {DENOMINATIONS.map((d) => (
-                <div key={d}>
-                  <label style={{ display: "block", fontSize: 11, color: "var(--color-text-secondary)", marginBottom: 4 }}>EGP {d} Count</label>
+                <div key={d} className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">EGP {d}</label>
                   <CounterInput
                     value={tempBase[id]?.[d] || 0}
                     onChange={(v) => setTempBase({ ...tempBase, [id]: { ...(tempBase[id] || { 200: 0, 100: 0, 50: 0, 10: 0 }), [d]: v } })}
                   />
-                  <div style={{ fontSize: 10, color: "var(--color-text-secondary)", marginTop: 2, textAlign: "right", fontFamily: "var(--font-mono)" }}>
-                    EGP {fmt((tempBase[id]?.[d] || 0) * d)}
-                  </div>
+                  <p className="text-[9px] text-slate-400 font-mono text-right font-medium">
+                    {fmt((tempBase[id]?.[d] || 0) * d)}
+                  </p>
                 </div>
               ))}
-            </div>
-            <div style={{ marginTop: 14, paddingTop: 8, borderTop: "1px solid var(--color-border-tertiary)", display: "flex", justifyContent: "space-between", fontSize: 13, fontWeight: 500 }}>
-              <span>ATM Total</span>
-              <span style={{ color: ATM_COLORS[id] || "#185FA5", fontFamily: "var(--font-mono)", fontWeight: 700 }}>EGP {fmt(calcTotal(tempBase[id] || { 200: 0, 100: 0, 50: 0, 10: 0 }))}</span>
             </div>
           </Card>
         ))}

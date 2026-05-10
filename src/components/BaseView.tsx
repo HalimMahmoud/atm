@@ -3,87 +3,81 @@ import { ATM_COLORS, DENOMINATIONS } from "../types";
 import { calcTotal, fmt } from "../utils";
 import { Card } from "./shared/Card";
 import { Badge } from "./shared/Badge";
+import { Info, Wallet } from "lucide-react";
 
 export function BaseView({ state }: { state: AppState }) {
   const { base, atmCount } = state;
   const ATM_IDS = Array.from({ length: atmCount }, (_, i) => `ATM ${i + 1}`);
-  
+  const grandTotal = ATM_IDS.reduce((s, id) => s + calcTotal(base[id] || { 200: 0, 100: 0, 50: 0, 10: 0 }), 0);
+
   return (
-    <div>
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginBottom: "1.25rem",
-          flexWrap: "wrap",
-          gap: 10,
-        }}
-      >
-        <span style={{ fontSize: 13, color: "var(--color-text-secondary)" }}>Read-only view — edit via Settings (admin PIN).</span>
-        <div style={{ background: "#E6F1FB", color: "#185FA5", borderRadius: 8, padding: "6px 14px", fontSize: 13, fontWeight: 500 }}>
-          Grand Base Total: EGP {fmt(ATM_IDS.reduce((s, id) => s + calcTotal(base[id] || { 200: 0, 100: 0, 50: 0, 10: 0 }), 0))}
+    <div className="space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-2 text-slate-500">
+          <Info className="w-4 h-4" />
+          <span className="text-xs font-medium uppercase tracking-wide">Read-only view • Edit via Settings</span>
+        </div>
+        
+        <div className="flex items-center gap-3 bg-white border border-slate-200 px-4 py-2.5 rounded-xl shadow-soft">
+          <div className="p-2 bg-slate-900 rounded-lg">
+            <Wallet className="w-4 h-4 text-white" />
+          </div>
+          <div>
+            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider leading-none">Grand Base Total</p>
+            <p className="text-lg font-bold text-slate-900 leading-none mt-1">EGP {fmt(grandTotal)}</p>
+          </div>
         </div>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: 14 }}>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {ATM_IDS.map((id) => (
-          <Card key={id} style={{ borderTop: `4px solid ${ATM_COLORS[id] || "#185FA5"}` }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-              <span style={{ fontWeight: 700, fontSize: 14, color: ATM_COLORS[id] || "var(--color-text-primary)" }}>{id}</span>
-              <Badge color="blue">EGP {fmt(calcTotal(base[id] || { 200: 0, 100: 0, 50: 0, 10: 0 }))}</Badge>
+          <Card key={id} className="group overflow-hidden">
+            <div 
+              className="absolute top-0 left-0 w-full h-1" 
+              style={{ background: ATM_COLORS[id] || "#0f172a" }}
+            />
+            
+            <div className="flex justify-between items-center mb-4">
+              <span 
+                className="font-bold text-sm" 
+                style={{ color: ATM_COLORS[id] || "#0f172a" }}
+              >
+                {id}
+              </span>
+              <Badge color="gray">
+                Total: {fmt(calcTotal(base[id] || { 200: 0, 100: 0, 50: 0, 10: 0 }))}
+              </Badge>
             </div>
-            <table style={{ width: "100%", fontSize: 12, borderCollapse: "collapse" }}>
-              <thead>
-                <tr style={{ color: "var(--color-text-secondary)" }}>
-                  <th style={{ textAlign: "left", fontWeight: 400, paddingBottom: 4 }}>Denom</th>
-                  <th style={{ textAlign: "right", fontWeight: 400, paddingBottom: 4 }}>Count</th>
-                  <th style={{ textAlign: "right", fontWeight: 400, paddingBottom: 4 }}>Amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                {DENOMINATIONS.map((d) => (
-                  <tr key={d} style={{ borderTop: "0.5px solid var(--color-border-tertiary)" }}>
-                    <td style={{ padding: "3px 0", color: "var(--color-text-secondary)" }}>EGP {d}</td>
-                    <td
-                      style={{
-                        padding: "3px 0",
-                        textAlign: "right",
-                        fontFamily: "var(--font-mono)",
-                        color: "var(--color-text-primary)",
-                      }}
-                    >
-                      {fmt(base[id]?.[d] || 0)}
-                    </td>
-                    <td
-                      style={{
-                        padding: "3px 0",
-                        textAlign: "right",
-                        fontFamily: "var(--font-mono)",
-                        color: "var(--color-text-primary)",
-                      }}
-                    >
-                      {fmt((base[id]?.[d] || 0) * d)}
-                    </td>
-                  </tr>
-                ))}
-                <tr style={{ borderTop: "1px solid var(--color-border-secondary)" }}>
-                  <td colSpan={2} style={{ padding: "4px 0", fontWeight: 500, fontSize: 12 }}>
-                    Total
-                  </td>
-                  <td
-                    style={{
-                      padding: "4px 0",
-                      textAlign: "right",
-                      fontWeight: 700,
-                      fontFamily: "var(--font-mono)",
-                      color: ATM_COLORS[id] || "#185FA5",
-                    }}
-                  >
-                    {fmt(calcTotal(base[id] || { 200: 0, 100: 0, 50: 0, 10: 0 }))}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+
+            <div className="space-y-2">
+              <div className="grid grid-cols-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest pb-1 border-b border-slate-50">
+                <span>Denom</span>
+                <span className="text-right">Count</span>
+                <span className="text-right">Amount</span>
+              </div>
+              
+              {DENOMINATIONS.map((d) => (
+                <div key={d} className="grid grid-cols-3 text-xs items-center py-1">
+                  <span className="font-medium text-slate-500">EGP {d}</span>
+                  <span className="text-right font-mono text-slate-900">
+                    {fmt(base[id]?.[d] || 0)}
+                  </span>
+                  <span className="text-right font-mono font-bold text-slate-900">
+                    {fmt((base[id]?.[d] || 0) * d)}
+                  </span>
+                </div>
+              ))}
+              
+              <div className="pt-2 mt-2 border-t border-slate-100 flex justify-between items-center">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Amount</span>
+                <span 
+                  className="font-mono text-sm font-bold"
+                  style={{ color: ATM_COLORS[id] || "#0f172a" }}
+                >
+                  EGP {fmt(calcTotal(base[id] || { 200: 0, 100: 0, 50: 0, 10: 0 }))}
+                </span>
+              </div>
+            </div>
           </Card>
         ))}
       </div>

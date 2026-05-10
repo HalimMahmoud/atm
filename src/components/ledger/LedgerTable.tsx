@@ -1,5 +1,11 @@
 import React from "react";
 import { Card } from "../shared/Card";
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
 
 interface LedgerTableProps {
   columns: { key: string; label: string; color?: string; minWidth?: number }[];
@@ -17,43 +23,64 @@ export function LedgerTable({
   renderSideHeader,
 }: LedgerTableProps) {
   return (
-    <Card style={{ padding: 0, overflowX: "auto", border: "0.5px solid var(--color-border-secondary)", marginBottom: 24 }}>
-      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, tableLayout: "fixed" }}>
-        <thead>
-          <tr style={{ background: "var(--color-background-secondary)", borderBottom: "1px solid var(--color-border-secondary)" }}>
-            <th className="sticky-col" style={{ padding: "12px 15px", textAlign: "left", fontWeight: 600, color: "var(--color-text-secondary)", width: 90, borderRight: "1px solid var(--color-border-tertiary)", background: "var(--color-background-secondary)" }}>Date</th>
-            <th className="sticky-col-2" style={{ padding: "12px 10px", textAlign: "left", fontWeight: 600, color: "var(--color-text-secondary)", width: 60, borderRight: "1px solid var(--color-border-tertiary)", background: "var(--color-background-secondary)" }}>Item</th>
-            {columns.map(col => (
-              <th key={col.key} style={{ padding: "12px 10px", textAlign: "center", minWidth: col.minWidth || 140, borderRight: "0.5px solid var(--color-border-tertiary)" }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: col.color }}>{col.label}</div>
+    <Card className="p-0 overflow-hidden border-slate-200 mb-6">
+      <div className="overflow-x-auto overflow-y-hidden">
+        <table className="w-full border-collapse text-xs md:text-sm table-fixed">
+          <thead>
+            <tr className="bg-slate-50/50 border-b border-slate-200">
+              <th className="sticky-col w-24 p-3 text-left font-bold text-slate-500 uppercase tracking-wider border-r border-slate-100 bg-slate-50">
+                Date
               </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row) => (
-            <React.Fragment key={row.id}>
-              {subRowItems.map((item, itemIdx) => (
-                <tr key={`${row.id}-${itemIdx}`} style={{ borderBottom: itemIdx === subRowItems.length - 1 ? "2px solid var(--color-border-secondary)" : "0.5px solid var(--color-border-tertiary)" }}>
-                  {itemIdx === 0 && (
-                    <td className="sticky-col" rowSpan={row.rowSpan} style={{ padding: "15px", fontWeight: 700, verticalAlign: "top", borderRight: "1px solid var(--color-border-tertiary)", background: "var(--color-background-secondary)" }}>
-                      {row.mainLabel}
-                    </td>
-                  )}
-                  <td className="sticky-col-2" style={{ padding: "10px", fontWeight: 600, color: "var(--color-text-secondary)", borderRight: "1px solid var(--color-border-tertiary)", background: "var(--color-background-tertiary)", fontSize: 10, textTransform: "uppercase", letterSpacing: "0.02em" }}>
-                    {renderSideHeader(item)}
-                  </td>
-                  {columns.map(col => (
-                    <React.Fragment key={col.key}>
-                      {renderCell(row.id, item, col.key)}
-                    </React.Fragment>
-                  ))}
-                </tr>
+              <th className="sticky-col-2 w-20 p-3 text-left font-bold text-slate-500 uppercase tracking-wider border-r border-slate-100 bg-slate-50">
+                Item
+              </th>
+              {columns.map(col => (
+                <th 
+                  key={col.key} 
+                  className="p-3 text-center border-r border-slate-100 last:border-r-0"
+                  style={{ minWidth: col.minWidth || 140 }}
+                >
+                  <span className="font-bold" style={{ color: col.color || "#0f172a" }}>
+                    {col.label}
+                  </span>
+                </th>
               ))}
-            </React.Fragment>
-          ))}
-        </tbody>
-      </table>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row) => (
+              <React.Fragment key={row.id}>
+                {subRowItems.map((item, itemIdx) => (
+                  <tr 
+                    key={`${row.id}-${itemIdx}`} 
+                    className={cn(
+                      "group border-b border-slate-100 last:border-b-0",
+                      itemIdx === subRowItems.length - 1 && "border-b-slate-200 border-b-2"
+                    )}
+                  >
+                    {itemIdx === 0 && (
+                      <td 
+                        className="sticky-col p-4 font-bold text-slate-900 align-top border-r border-slate-100 bg-white" 
+                        rowSpan={row.rowSpan}
+                      >
+                        {row.mainLabel}
+                      </td>
+                    )}
+                    <td className="sticky-col-2 p-3 font-bold text-slate-400 uppercase tracking-tight border-r border-slate-100 bg-slate-50/30 text-[9px] md:text-[10px]">
+                      {renderSideHeader(item)}
+                    </td>
+                    {columns.map(col => (
+                      <React.Fragment key={col.key}>
+                        {renderCell(row.id, item, col.key)}
+                      </React.Fragment>
+                    ))}
+                  </tr>
+                ))}
+              </React.Fragment>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </Card>
   );
 }

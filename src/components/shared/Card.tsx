@@ -1,23 +1,28 @@
 import React from "react";
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
 
 interface CardProps {
   children: React.ReactNode;
-  style?: React.CSSProperties;
+  className?: string;
   onClick?: () => void;
+  style?: React.CSSProperties;
 }
 
-export function Card({ children, style, onClick }: CardProps) {
+export function Card({ children, className, onClick, style }: CardProps) {
   return (
     <div
       onClick={onClick}
-      style={{
-        background: "var(--color-background-primary)",
-        border: "0.5px solid var(--color-border-tertiary)",
-        borderRadius: 12,
-        padding: "1rem 1.25rem",
-        cursor: onClick ? "pointer" : undefined,
-        ...style,
-      }}
+      style={style}
+      className={cn(
+        "bg-white border border-slate-200 rounded-xl p-4 md:p-5 shadow-soft transition-all duration-200",
+        onClick && "cursor-pointer hover:border-slate-300 hover:shadow-md active:scale-[0.99]",
+        className
+      )}
     >
       {children}
     </div>

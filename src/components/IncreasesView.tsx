@@ -2,9 +2,9 @@ import React from "react";
 import type { AppState, Action, IncreaseEntry, Denomination } from "../types";
 import { ATM_COLORS } from "../types";
 import { calcTotal, fmt } from "../utils";
-import { Badge } from "./shared/Badge";
 import { CounterInput } from "./shared/CounterInput";
 import { LedgerTable } from "./ledger/LedgerTable";
+import { Calendar, TrendingUp, Info } from "lucide-react";
 
 export function IncreasesView({ state, dispatch }: { state: AppState; dispatch: React.Dispatch<Action> }) {
   const { base, dailyIncreases, selectedDate, atmCount } = state;
@@ -14,13 +14,27 @@ export function IncreasesView({ state, dispatch }: { state: AppState; dispatch: 
   const grandTotal = ATM_IDS.reduce((s, id) => s + calcTotal(base[id] || { 200: 0, 100: 0, 50: 0, 10: 0 }) + (dayData[id] || []).reduce((a, inc) => a + calcTotal(inc), 0), 0);
 
   return (
-    <div>
-      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: "1.5rem", flexWrap: "wrap" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <label style={{ fontSize: 13, color: "var(--color-text-secondary)", fontWeight: 500 }}>Operation Date:</label>
-          <input type="date" value={selectedDate} onChange={(e) => dispatch({ type: "SET_DATE", date: e.target.value })} style={{ padding: "5px 12px", border: "0.5px solid var(--color-border-secondary)", borderRadius: 8, fontSize: 13, background: "var(--color-background-secondary)", color: "var(--color-text-primary)", outline: "none" }} />
+    <div className="space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 bg-white border border-slate-200 px-3 py-1.5 rounded-lg shadow-sm">
+            <Calendar className="w-4 h-4 text-slate-400" />
+            <input 
+              type="date" 
+              value={selectedDate} 
+              onChange={(e) => dispatch({ type: "SET_DATE", date: e.target.value })} 
+              className="bg-transparent text-sm font-semibold text-slate-900 outline-none"
+            />
+          </div>
         </div>
-        <div style={{ marginLeft: "auto", background: "#E6F1FB", color: "#185FA5", borderRadius: 8, padding: "6px 14px", fontSize: 13, fontWeight: 700 }}>Operation Grand Total: EGP {fmt(grandTotal)}</div>
+
+        <div className="flex items-center gap-3 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-lg">
+          <TrendingUp className="w-4 h-4 text-slate-400" />
+          <div>
+            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider leading-none">Operation Grand Total</p>
+            <p className="text-lg font-bold leading-none mt-1">EGP {fmt(grandTotal)}</p>
+          </div>
+        </div>
       </div>
 
       <LedgerTable 
@@ -47,27 +61,55 @@ export function IncreasesView({ state, dispatch }: { state: AppState; dispatch: 
             }
           };
 
-          const cellStyle: React.CSSProperties = { padding: 0, borderRight: "0.5px solid var(--color-border-tertiary)", height: 38, textAlign: "center" };
+          const cellClass = "p-0 border-r border-slate-100 last:border-r-0 h-10 text-center align-middle";
 
-          if (item === "Base") return <td style={{ ...cellStyle, background: "rgba(0,0,0,0.02)", color: "var(--color-text-tertiary)", fontSize: 11 }}>{fmt(calcTotal(b))}</td>;
+          if (item === "Base") return <td className={cellClass + " bg-slate-50/50 text-slate-400 text-[10px] font-mono"}>{fmt(calcTotal(b))}</td>;
           if (typeof item === "number") {
             const d = item as Denomination;
-            return <td style={cellStyle}><CounterInput variant="cell" value={Number(f[d]) || 0} onChange={(v) => upd(d as any, v)} /></td>;
+            return (
+              <td className={cellClass}>
+                <CounterInput variant="cell" value={Number(f[d]) || 0} onChange={(v) => upd(d as any, v)} />
+              </td>
+            );
           }
           if (item === "Total Increase") {
             const incOnly = incs.reduce((s, inc) => s + calcTotal(inc), 0);
-            return <td style={{ ...cellStyle, background: "rgba(59, 109, 17, 0.04)", fontWeight: 600, color: "#3B6D11", fontSize: 11 }}>{incOnly > 0 ? `+${fmt(incOnly)}` : "-"}</td>;
+            return (
+              <td className={cellClass + " bg-green-50/30 font-bold text-green-600 text-[10px] font-mono"}>
+                {incOnly > 0 ? `+${fmt(incOnly)}` : "-"}
+              </td>
+            );
           }
-          if (item === "Note") return <td style={cellStyle}><input value={f.note || ""} onChange={e => upd("note", e.target.value)} style={{ width: "100%", height: "100%", border: "none", background: "transparent", textAlign: "center", fontSize: 12, outline: "none" }} placeholder="..." /></td>;
+          if (item === "Note") return (
+            <td className={cellClass}>
+              <input 
+                value={f.note || ""} 
+                onChange={e => upd("note", e.target.value)} 
+                className="w-full h-full bg-transparent text-center text-[10px] text-slate-500 outline-none placeholder:text-slate-300" 
+                placeholder="..." 
+              />
+            </td>
+          );
           
           const total = calcTotal(b) + incs.reduce((s, inc) => s + calcTotal(inc), 0);
-          return <td style={{ ...cellStyle, background: "rgba(24, 95, 165, 0.05)", fontWeight: 800, color: ATM_COLORS[atmId], fontSize: 13 }}>{fmt(total)}</td>;
+          return (
+            <td 
+              className={cellClass + " bg-slate-100/50 font-bold text-xs font-mono"}
+              style={{ color: ATM_COLORS[atmId] }}
+            >
+              {fmt(total)}
+            </td>
+          );
         }}
       />
       
-      <div style={{ display: "flex", gap: 12, fontSize: 12, color: "var(--color-text-secondary)" }}>
-        <Badge color="blue">Info</Badge>
-        <span>This view edits the primary daily increase for each ATM. Total includes base custody.</span>
+      <div className="flex items-center gap-2 bg-white border border-slate-200 px-4 py-3 rounded-xl shadow-soft">
+        <div className="p-1.5 bg-blue-50 rounded-lg">
+          <Info className="w-4 h-4 text-blue-500" />
+        </div>
+        <p className="text-xs text-slate-500 font-medium">
+          This view manages the primary daily increase for each ATM. The grand total includes both base custody and added increases.
+        </p>
       </div>
     </div>
   );

@@ -2,12 +2,19 @@ import type { AppState, Counts, IncreaseEntry, Denomination, AtmId } from "../ty
 import { DENOMINATIONS, ATM_COLORS } from "../types";
 import { calcTotal, fmt } from "../utils";
 import { Card } from "./shared/Card";
+import { Badge } from "./shared/Badge";
+import { Activity, ShieldCheck, Wallet, TrendingUp } from "lucide-react";
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
 
 export function MasterStatusView({ state }: { state: AppState }) {
   const { base, dailyIncreases, holidays, selectedDate, atmCount } = state;
   const ATM_IDS = Array.from({ length: atmCount }, (_, i) => `ATM ${i + 1}`);
 
-  // Helpers
   const getDenomSum = (items: IncreaseEntry[], d: Denomination) => items.reduce((s, e) => s + (Number(e[d]) || 0), 0);
   
   const getAtmHolidayUsage = (id: AtmId) => {
@@ -24,110 +31,164 @@ export function MasterStatusView({ state }: { state: AppState }) {
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-      <div>
-        <h2 style={{ margin: 0, fontSize: 20, fontWeight: 600 }}>Master Operation Status</h2>
-        <div style={{ fontSize: 13, color: "var(--color-text-secondary)" }}>Consolidated overview of all custody and holiday pools</div>
-      </div>
-
-      <UndebitedBreakdown ATM_IDS={ATM_IDS} getAtmHolidayUsage={getAtmHolidayUsage} />
-      <PoolManagement pool={pool} />
-      <NetPosition ATM_IDS={ATM_IDS} base={base} dailyIncreases={dailyIncreases} selectedDate={selectedDate} getAtmHolidayUsage={getAtmHolidayUsage} />
-    </div>
-  );
-}
-
-function UndebitedBreakdown({ ATM_IDS, getAtmHolidayUsage }: any) {
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-      <div style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text-secondary)", textTransform: "uppercase" }}>1. Total Undebited Breakdown</div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12 }}>
-        {ATM_IDS.map((id: any) => {
-          const usage = getAtmHolidayUsage(id);
-          return (
-            <Card key={id} style={{ padding: 12, borderLeft: `4px solid ${ATM_COLORS[id]}` }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: ATM_COLORS[id] }}>{id}</div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: "#A32D2D" }}>−EGP {fmt(usage.amount)}</div>
-              </div>
-              {DENOMINATIONS.map(d => (
-                <div key={d} style={{ display: "flex", justifyContent: "space-between", background: "var(--color-background-secondary)", padding: "4px 10px", borderRadius: 6, marginBottom: 2 }}>
-                  <span style={{ fontSize: 11, color: "var(--color-text-tertiary)" }}>{d}</span>
-                  <span style={{ fontSize: 12, fontWeight: 600 }}>{usage.counts[d]}</span>
-                </div>
-              ))}
-            </Card>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-function PoolManagement({ pool }: any) {
-  const totalInitial = Object.keys(pool.initial).reduce((s, k) => s + pool.initial[Number(k) as Denomination] * Number(k), 0);
-  const totalFed = Object.keys(pool.fed).reduce((s, k) => s + pool.fed[Number(k) as Denomination] * Number(k), 0);
-  
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-      <div style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text-secondary)", textTransform: "uppercase" }}>2. Holiday Pool Management</div>
-      <Card style={{ borderLeft: "4px solid #A32D2D", padding: "12px 0" }}>
-        <div className="mobile-scroll-container">
-          <div style={{ minWidth: 450, padding: "0 12px" }}>
-            <div style={{ display: "grid", gridTemplateColumns: "60px 1fr 1fr 1fr", gap: 10, padding: "0 10px", marginBottom: 8 }}>
-              {["DENOM", "INITIAL", "DISPENSED", "REMAINING"].map(h => <div key={h} style={{ fontSize: 10, fontWeight: 700, color: "var(--color-text-tertiary)", textAlign: h === "DENOM" ? "left" : "center" }}>{h}</div>)}
-            </div>
-            {DENOMINATIONS.map(d => {
-              const rem = pool.initial[d] - pool.fed[d];
-              return (
-                <div key={d} style={{ display: "grid", gridTemplateColumns: "60px 1fr 1fr 1fr", gap: 10, background: "var(--color-background-secondary)", padding: "8px 10px", borderRadius: 8, alignItems: "center", marginBottom: 4 }}>
-                  <div style={{ fontSize: 12, fontWeight: 700 }}>{d}</div>
-                  <div style={{ textAlign: "center", fontSize: 11 }}>{pool.initial[d]} <br/><small>{fmt(pool.initial[d]*d)}</small></div>
-                  <div style={{ textAlign: "center", fontSize: 11, color: "#A32D2D" }}>{pool.fed[d]} <br/><small>{fmt(pool.fed[d]*d)}</small></div>
-                  <div style={{ textAlign: "center", fontSize: 11, fontWeight: 700, color: rem < 0 ? "#A32D2D" : "#185FA5" }}>{rem} <br/><small>{fmt(rem*d)}</small></div>
-                </div>
-              );
-            })}
-            <div style={{ display: "grid", gridTemplateColumns: "60px 1fr 1fr 1fr", gap: 10, padding: "10px", background: "#F8FAFC", borderRadius: 8, fontWeight: 800, fontSize: 12, marginTop: 4 }}>
-              <div>TOTAL</div>
-              <div style={{ textAlign: "center" }}>{fmt(totalInitial)}</div>
-              <div style={{ textAlign: "center", color: "#A32D2D" }}>-{fmt(totalFed)}</div>
-              <div style={{ textAlign: "center", color: "#185FA5" }}>{fmt(totalInitial - totalFed)}</div>
-            </div>
-          </div>
+    <div className="space-y-12 pb-12">
+      <div className="space-y-1">
+        <div className="flex items-center gap-2 text-slate-400">
+          <Activity className="w-4 h-4" />
+          <span className="text-[10px] font-bold uppercase tracking-widest">System Overview</span>
         </div>
-      </Card>
+        <h2 className="text-2xl font-black text-slate-900 tracking-tight">Master Operation Status</h2>
+        <p className="text-slate-500 text-sm font-medium">Consolidated overview of all custody and holiday pools.</p>
+      </div>
+
+      <Section title="1. Total Undebited Breakdown" icon={TrendingUp}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {ATM_IDS.map((id) => {
+            const usage = getAtmHolidayUsage(id as AtmId);
+            return (
+              <Card key={id} className="relative overflow-hidden pt-6">
+                <div 
+                  className="absolute top-0 left-0 w-1 h-full" 
+                  style={{ background: ATM_COLORS[id] || "#0f172a" }}
+                />
+                <div className="flex justify-between items-center mb-4 px-2">
+                  <span className="font-bold text-sm" style={{ color: ATM_COLORS[id] || "#0f172a" }}>{id}</span>
+                  <span className="text-xs font-black text-red-600">−EGP {fmt(usage.amount)}</span>
+                </div>
+                <div className="space-y-1 px-2">
+                  {DENOMINATIONS.map(d => (
+                    <div key={d} className="flex justify-between items-center bg-slate-50/50 px-3 py-1.5 rounded-lg border border-slate-100">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">EGP {d}</span>
+                      <span className="text-xs font-mono font-bold text-slate-900">{usage.counts[d]}</span>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+      </Section>
+
+      <Section title="2. Holiday Pool Management" icon={ShieldCheck}>
+        <Card className="p-0 overflow-hidden border-slate-200">
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse text-sm min-w-[600px]">
+              <thead>
+                <tr className="bg-slate-50 border-b border-slate-200">
+                  <th className="p-4 text-left text-[10px] font-bold text-slate-400 uppercase tracking-widest">Denom</th>
+                  <th className="p-4 text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">Initial Pool</th>
+                  <th className="p-4 text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Fed</th>
+                  <th className="p-4 text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">Remaining</th>
+                </tr>
+              </thead>
+              <tbody>
+                {DENOMINATIONS.map(d => {
+                  const rem = pool.initial[d] - pool.fed[d];
+                  return (
+                    <tr key={d} className="border-b border-slate-50 last:border-b-0 hover:bg-slate-50/30 transition-colors">
+                      <td className="p-4 font-bold text-slate-900">EGP {d}</td>
+                      <td className="p-4 text-center">
+                        <p className="font-mono font-bold text-slate-900">{pool.initial[d]}</p>
+                        <p className="text-[10px] text-slate-400 font-mono mt-0.5">{fmt(pool.initial[d]*d)}</p>
+                      </td>
+                      <td className="p-4 text-center">
+                        <p className="font-mono font-bold text-red-600">−{pool.fed[d]}</p>
+                        <p className="text-[10px] text-red-400/70 font-mono mt-0.5">−{fmt(pool.fed[d]*d)}</p>
+                      </td>
+                      <td className="p-4 text-center">
+                        <p className={cn(
+                          "font-mono font-black",
+                          rem < 0 ? "text-red-600" : "text-blue-600"
+                        )}>
+                          {rem}
+                        </p>
+                        <p className="text-[10px] font-mono opacity-60 mt-0.5">{fmt(rem*d)}</p>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+              <tfoot>
+                <tr className="bg-slate-900 text-white">
+                  <td className="p-4 font-black uppercase tracking-widest text-[10px]">Total Position</td>
+                  <td className="p-4 text-center font-mono font-black">{fmt(Object.keys(pool.initial).reduce((s, k) => s + pool.initial[Number(k) as Denomination] * Number(k), 0))}</td>
+                  <td className="p-4 text-center font-mono font-black text-red-400">−{fmt(Object.keys(pool.fed).reduce((s, k) => s + pool.fed[Number(k) as Denomination] * Number(k), 0))}</td>
+                  <td className="p-4 text-center font-mono font-black text-blue-400">
+                    {fmt(Object.keys(pool.initial).reduce((s, k) => s + pool.initial[Number(k) as Denomination] * Number(k), 0) - Object.keys(pool.fed).reduce((s, k) => s + pool.fed[Number(k) as Denomination] * Number(k), 0))}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </Card>
+      </Section>
+
+      <Section title="3. Final Net Custody Position" icon={Wallet}>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {ATM_IDS.map((id) => {
+            const hol = getAtmHolidayUsage(id as AtmId);
+            return (
+              <Card key={id} className="relative overflow-hidden group">
+                <div 
+                  className="absolute top-0 left-0 w-full h-1" 
+                  style={{ background: ATM_COLORS[id] || "#0f172a" }}
+                />
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="font-black text-base" style={{ color: ATM_COLORS[id] || "#0f172a" }}>{id}</h3>
+                  <Badge color="gray" className="text-[9px]">Calculated Live</Badge>
+                </div>
+                
+                <div className="space-y-4">
+                  <div className="grid grid-cols-5 text-[9px] font-black text-slate-400 uppercase tracking-widest text-right pb-2 border-b border-slate-50">
+                    <span className="text-left">DNM</span>
+                    <span>Base</span>
+                    <span>Inc</span>
+                    <span>Hol</span>
+                    <span className="text-slate-900">Net</span>
+                  </div>
+                  
+                  {DENOMINATIONS.map(d => {
+                    const b = base[id]?.[d] || 0;
+                    const i = (dailyIncreases[selectedDate]?.[id] || []).reduce((s: any, e: any) => s + (Number(e[d]) || 0), 0);
+                    const h = hol.counts[d];
+                    const net = b + i + h;
+                    return (
+                      <div key={d} className="grid grid-cols-5 text-xs font-mono items-center text-right group-hover:bg-slate-50/50 transition-colors py-1 rounded">
+                        <span className="text-left font-bold text-slate-900">{d}</span>
+                        <span className="text-slate-400">{b}</span>
+                        <span className="text-slate-400">{i}</span>
+                        <span className="text-slate-400">{h}</span>
+                        <span className="font-black" style={{ color: ATM_COLORS[id] }}>{net}</span>
+                      </div>
+                    );
+                  })}
+
+                  <div className="pt-4 border-t border-slate-100 flex justify-between items-center">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Machine Net</p>
+                    <p className="text-lg font-black" style={{ color: ATM_COLORS[id] }}>
+                      {fmt(calcTotal(base[id] || { 200: 0, 100: 0, 50: 0, 10: 0 }) + (dailyIncreases[selectedDate]?.[id] || []).reduce((s: any, e: any) => s + calcTotal(e), 0) + hol.amount)}
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+      </Section>
     </div>
   );
 }
 
-function NetPosition({ ATM_IDS, base, dailyIncreases, selectedDate, getAtmHolidayUsage }: any) {
+function Section({ title, icon: Icon, children }: any) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-      <div style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text-secondary)", textTransform: "uppercase" }}>3. Final Net Custody Position</div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: 10 }}>
-        {ATM_IDS.map((id: any) => {
-          const hol = getAtmHolidayUsage(id);
-          return (
-            <Card key={id} style={{ padding: 10, borderLeft: `4px solid ${ATM_COLORS[id]}` }}>
-              <div style={{ fontSize: 14, fontWeight: 800, marginBottom: 10, color: ATM_COLORS[id], borderBottom: "1px solid var(--color-border-tertiary)" }}>{id}</div>
-              <div style={{ display: "grid", gridTemplateColumns: "30px 1fr 1fr 1fr 1fr", fontSize: 8, color: "var(--color-text-tertiary)", textAlign: "right", marginBottom: 4 }}>
-                <div style={{ textAlign: "left" }}>DNM</div><div/><div>BASE</div><div>INC</div><div>HOL</div><div>TOT</div>
-              </div>
-              {DENOMINATIONS.map(d => {
-                const b = base[id]?.[d] || 0, i = (dailyIncreases[selectedDate]?.[id] || []).reduce((s: any, e: any) => s + (Number(e[d]) || 0), 0), h = hol.counts[d];
-                return (
-                  <div key={d} style={{ display: "grid", gridTemplateColumns: "30px 1fr 1fr 1fr 1fr", fontSize: 10, padding: "4px 0", borderBottom: "1px solid var(--color-background-secondary)", textAlign: "right" }}>
-                    <div style={{ textAlign: "left", fontWeight: 700 }}>{d}</div>
-                    <div>{b}</div><div>{i}</div><div>{h}</div>
-                    <div style={{ fontWeight: 800, color: ATM_COLORS[id] }}>{b + i + h}</div>
-                  </div>
-                );
-              })}
-            </Card>
-          );
-        })}
+    <div className="space-y-4">
+      <div className="flex items-center gap-2 px-2">
+        <div className="p-1.5 bg-slate-100 rounded-lg">
+          <Icon className="w-3.5 h-3.5 text-slate-500" />
+        </div>
+        <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">{title}</h3>
       </div>
+      {children}
     </div>
   );
 }
