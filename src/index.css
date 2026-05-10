@@ -73,5 +73,5 @@
 }
 
 .sticky-col-2 {
-  @apply sticky left-[90px] z-10 bg-white shadow-[2px_0_5px_rgba(0,0,0,0.03)];
+  @apply sticky left-[48px] z-10 bg-white shadow-[2px_0_5px_rgba(0,0,0,0.03)];
 }

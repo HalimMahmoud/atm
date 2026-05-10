@@ -28,8 +28,8 @@ export function LedgerTable({
         <table className="w-full border-collapse text-xs md:text-sm table-fixed">
           <thead>
             <tr className="bg-slate-50/50 border-b border-slate-200">
-              <th className="sticky-col w-24 p-3 text-left font-bold text-slate-500 uppercase tracking-wider border-r border-slate-100 bg-slate-50">
-                Date
+              <th className="sticky-col w-12 p-2 text-center font-bold text-slate-500 uppercase tracking-wider border-r border-slate-100 bg-slate-50">
+                <span className="[writing-mode:vertical-lr] rotate-180 inline-block text-[10px]">Date</span>
               </th>
               <th className="sticky-col-2 w-20 p-3 text-left font-bold text-slate-500 uppercase tracking-wider border-r border-slate-100 bg-slate-50">
                 Item
@@ -60,10 +60,14 @@ export function LedgerTable({
                   >
                     {itemIdx === 0 && (
                       <td 
-                        className="sticky-col p-4 font-bold text-slate-900 align-top border-r border-slate-100 bg-white" 
+                        className="sticky-col p-0 font-bold text-slate-900 align-middle border-r border-slate-100 bg-white" 
                         rowSpan={row.rowSpan}
                       >
-                        {row.mainLabel}
+                        <div className="flex items-center justify-center h-full min-h-[60px] py-4">
+                          <span className="[writing-mode:vertical-lr] rotate-180 inline-block whitespace-nowrap text-[11px] tracking-tighter">
+                            {row.mainLabel}
+                          </span>
+                        </div>
                       </td>
                     )}
                     <td className="sticky-col-2 p-3 font-bold text-slate-400 uppercase tracking-tight border-r border-slate-100 bg-slate-50/30 text-[9px] md:text-[10px]">
